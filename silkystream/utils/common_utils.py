@@ -24,7 +24,7 @@ def run_watch(obj,attr:str,new_value:Any):
     """
     watch_func = getattr(obj,f"watch_{attr}",None)
     old_data = getattr(obj,attr,None)
-    assert old_data,f"数据属性 {attr} 不存在！"
+    assert old_data is not None,f"数据属性 {attr} 不存在！"
     assert type(old_data) == type(new_value),f"属性{attr}的新值类型是{old_data}，旧值类型是{new_value}，类型不匹配"
     if isinstance_base(old_data): 
         st.session_state[obj.page_id]["data_copy"] = new_value # 如果是基础类型，还需要更新内容到copy中，否则会被run_watch_base扫描出来

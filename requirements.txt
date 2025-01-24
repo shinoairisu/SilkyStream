@@ -2,3 +2,4 @@ streamlit
 nanoid
 tqdm
 tinydb
+loguru

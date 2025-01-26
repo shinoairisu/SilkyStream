@@ -99,7 +99,11 @@ if __name__ == "__main__":
         data_uname: str = "nick"
         data_age: int = 18
 
-        def watch_uname(old_value, new_value):
-            """监控uname变化"""
-            pass
+        def watch_uname(self,old_value, new_value):...
+        @st.cache_data
+        @staticmethod
+        def cache_pdf(path):... # 计算函数对
+        def computed_pdf(self):
+            return TestClass.cache_pdf(self.data_uname)
+
 

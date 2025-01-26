@@ -1,0 +1,3 @@
+class EnhancedControl():
+    @staticmethod
+    def 

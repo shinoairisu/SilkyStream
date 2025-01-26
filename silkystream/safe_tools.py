@@ -13,29 +13,20 @@ class SafeTools(object):
         init函数有一个问题，就是必须写在主页中，而且服务器启动后，必须启动一次主页。如果不启动主页将出现问题
         """
         lock_names.add("global_variables") # 设置全局变量锁
-        lock_name.add("tinydb") # 设置数据库的锁
         for lock_name in lock_names:
             if lock_name not in GlobalState._locks_dict:
                 GlobalState._locks_dict[lock_name] = threading.Lock()
-        if not GlobalState._tinydb: # 新建一个数据库
-            GlobalState._tinydb = TinyDB("data.db")
     @staticmethod
     def get_lock(lock_name) -> threading.Lock:
         """任意页面获取锁，如果不存在，就向管理员报错，因为锁很重要！"""
         assert lock_name in GlobalState._locks_dict,f"锁{lock_name}不存在！"
         return GlobalState._locks_dict[lock_name]
-    @staticmethod
-    def database_select_table(table_name:str):... # 选择或者新建一个数据表
-    @staticmethod
-    def database_insert(key,value):...
 
 
 class GlobalState():
     _version = "silkystream_1.0"
     _locks_dict = {}
     _global_value_dict = {}
-    _tinydb = None
-
     @staticmethod
     def set_value(key,value):
         glock = SafeTools.get_lock("global_variables")

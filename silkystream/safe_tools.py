@@ -4,6 +4,7 @@
 from typing import Set
 import threading
 from loguru import logger
+from tinydb import TinyDB,Query
 
 class SafeTools(object):
     @staticmethod
@@ -16,25 +17,35 @@ class SafeTools(object):
         for lock_name in lock_names:
             if lock_name not in GlobalState._locks_dict:
                 GlobalState._locks_dict[lock_name] = threading.Lock()
+        if not GlobalState._tinydb: # 新建一个数据库
+            GlobalState._tinydb = TinyDB("data.db")
     @staticmethod
     def get_lock(lock_name) -> threading.Lock:
         """任意页面获取锁，如果不存在，就向管理员报错，因为锁很重要！"""
         assert lock_name in GlobalState._locks_dict,f"锁{lock_name}不存在！"
         return GlobalState._locks_dict[lock_name]
+    @staticmethod
+    def database_select_table(table_name:str):... # 选择或者新建一个数据表
+    @staticmethod
+    def database_insert(key,value):...
+
 
 class GlobalState():
     _version = "silkystream_1.0"
     _locks_dict = {}
     _global_value_dict = {}
+    _tinydb = None
 
     @staticmethod
     def set_value(key,value):
-        pass
+        glock = SafeTools.get_lock("global_variables")
+        with glock: # 防止同时读写导致的错误
+            GlobalState._global_value_dict[key] = value
 
     @staticmethod
     def get_value(key):
         glock = SafeTools.get_lock("global_variables")
-        with glock:
+        with glock: # 防止同时读写拿到脏数据
             value = GlobalState._global_value_dict.get(key,None)
         if not value:
             logger.warning("全局变量{}不存在",key)

@@ -1,4 +1,9 @@
-"""数据操作函数集合，支持dict，list，set"""
+"""数据操作函数集合，支持dict，list，set
+todo:
+本函数并未实现当初要求的内容。
+现在想要实现的是：插入list时，watch拿到的是新旧list。
+
+"""
 from typing import List
 import streamlit as st
 from silkystream.utils.common_utils import *
@@ -17,7 +22,7 @@ class DataOperator(object):
         assert old_value is not None,f"属性{attr}不存在"
         assert isinstance(old_value,list),f"属性{attr}类型不是list"
         old_value:list = getattr(obj,attr)
-        run_watch(obj,attr,value) # 这个函数已经检查过数据是否正确，new_value是插入的值
+        run_watch(attr,value) # 这个函数已经检查过数据是否正确，new_value是插入的值
         old_value.append(value)
     @staticmethod
     def list_insert(obj,attr,index,value):

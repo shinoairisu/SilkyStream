@@ -31,7 +31,7 @@ def run_watch(obj,attr:str,new_value:Any):
     if not watch_func: # 监视函数不存在就报个警告即可。防止使用错了变量
         logger.warning("不存在监视函数：watch_{}",attr)
         return
-    watch_func(obj,old_data,new_value) # 执行监视函数
+    watch_func(old_data,new_value) # 执行监视函数
 
 def run_watch_base():
     """

@@ -50,13 +50,18 @@ def run_watch_base():
     for page_id in pages: # 拿到对应id
         now_page = st.session_state[page_id]["data"]
         for attr in dir(now_page):
-            if not attr.startswith("data_"):
+            if not attr.startswith("data_"): # 如果不是数据属性就跳过
                 continue
-            new_data = getattr(now_page,attr,None)
+            new_data = getattr(now_page,attr,None) # 拿到数据
             if not isinstance_base(new_data): # 不是基础数据类型也不要
                 continue
-            old_data = getattr(st.session_state[page_id]["data_copy"],attr,None)
+            old_data = getattr(st.session_state[page_id]["data_copy"],attr,None) # 拿到老数据
             if old_data == new_data: # 没变就不管
                 continue
-            logger.debug("检测到属性 {} 发生变化。",attr)
+            assert type(old_data) == type(new_data),f"新旧属性类型不一致，位置为{page_id}的{attr},原始类型是{type(old_data)},新类型是{type(new_data)}"
+            logger.debug("检测到属性 {} 发生变化",attr)
+            watch_func = getattr(now_page,f"watch_{attr}",None)
+            if watch_func:
+                logger.debug("检测到变化属性 {} 是被监视的属性，执行监视函数",attr)
+                watch_func(old_data,new_data) # 监视函数
             setattr(st.session_state[page_id]["data_copy"],attr,new_data) # 存储数据变化

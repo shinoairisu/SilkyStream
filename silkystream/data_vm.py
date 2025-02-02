@@ -55,7 +55,7 @@ class DataViewModel(object):
         if "data" not in st.session_state[page_id]:  # 没有data就新建
             st.session_state[page_id]["data"] = obj
         if "data_copy" not in st.session_state[page_id]:  # 没有data_copy就新建
-            st.session_state[page_id]["data_copy"] = obj_copy  # 用来给watch用的
+            st.session_state[page_id]["data_copy"] = obj_copy  # ata_copy新建用来给watch用的
         return obj
 
     @staticmethod

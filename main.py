@@ -1,21 +1,20 @@
 import streamlit as st
 from silkystream.data_vm import DataViewModel as dvm
 from silkystream.enhanced_control import EnhancedControl as ec
-from typing import List
 
 class TestModel():
     def __init__(self):
-        self.data_books:List = ["AVA","RVR","CVC","EVE"]
-        self.data_selected_book:str = "RVR"
-        self.data_operator = []
-    def delete_book(self):
-        book = self.data_books.pop()
-        self.data_operator.append(f"删除书本{book}")
+        self.data_text:str = ""
+    def watch_data_text(self,old,new):
+        print(f"内容变更")
 
-tm = dvm.set_datavm("test_page",TestModel)
 
-ec.selectbox("书籍列表","data_selected_book","selector1",options=tm.data_books)
+ts = dvm.set_datavm("page_1",data_class_name=TestModel) # 返回当前页的数据模型
+st.write("""# 数据模型绑定展示
+         
+- 修改任何单行或者多行文本框的内容，按下enter或者ctrl+enter，单行和多行文本框内容会同时改变。
 
-st.button("删除书籍",key="delbook",on_click=tm.delete_book)
+""")
+ec.text_input(label="输入你想输入的",model="data_text",key="test1")
+ec.text_area(label="输入你想输入的",model="data_text",key="test2")
 
-st.write(tm.data_operator)

@@ -14,16 +14,17 @@ from loguru import logger
 
 
 def _run_two_function(parameters: tuple = None):
+    """回调函数要同时执行两个"""
     model, key = parameters[:2]
     _rewrite_value(model, key)  # 进行赋值
-    user_function_name = parameters[2]
+    user_function_name = parameters[2]  # 拿到回调函数
     if not user_function_name:
         return  # 如果没有写回调函数，直接返回
     param = parameters[3:]  # 剩下的都是回调函数的参数
     page_id = st.session_state.now_page_id
     obj = st.session_state[page_id]["data"]
     function_obj = getattr(obj, user_function_name)
-    if param:
+    if not param:
         function_obj()
     else:
         function_obj(*param)
@@ -51,7 +52,7 @@ class EnhancedControl:
         key: str,
         options: Union[List[str], Tuple[str], Set[str]],  # 尽量不要放数字进来
         format_func: Callable[[Any], Any] = str,
-        on_change: str = None,  # 此处只能使用当前页数据模型中的函数名
+        on_change_str: str = None,  # 此处只能使用当前页数据模型中的函数名
         help=None,
         args=(),
         kwargs=None,
@@ -62,24 +63,32 @@ class EnhancedControl:
         """修复了：option变化时，selectbox会回弹到第一个值的问题
         在vue中，option也是靠在UI中渲染的。
         推荐使用一个数据属性或者一个函数进行管控更为便捷
+
+        绑定model要求数据类型为: str
         """
         page_id = st.session_state.now_page_id
         obj = st.session_state[page_id]["data"]
         value = getattr(obj, model)
+        assert isinstance(value,str),f"selectbox绑定的数据模型类型必须为str，此处为{type(value)}"
+
         if model.startswith("com_"):
             k = value()
             if k in options:
                 st.session_state[key] = k  # 计算属性返回值直接供给到key中
             else:
                 logger.warning("值{}不存在", k)
-                st.session_state[key] = options[0] if options else "" # 否则才回复到初始为止
+                st.session_state[key] = (
+                    options[0] if options else ""
+                )  # 否则才回复到初始为止
         if model.startswith("data_"):
             if value in options:
                 st.session_state[key] = value  # 将数据模型的数据供给到key中
             else:
                 logger.warning("值{}不存在", value)
-                st.session_state[key] = options[0] if options else ""  # 否则才回复到初始为止
-        args_list = ((model, key, on_change, *args),)  # 以下为真正的渲染函数。
+                st.session_state[key] = (
+                    options[0] if options else ""
+                )  # 否则才回复到初始为止
+        args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数。
         st.selectbox(
             label=label,
             options=options,
@@ -94,3 +103,145 @@ class EnhancedControl:
             label_visibility=label_visibility,
         )
 
+    @staticmethod
+    def text_input(
+        label,
+        model: str,
+        key: str,
+        max_chars=None,
+        on_change_str: str = None,
+        type="default",
+        help=None,
+        autocomplete=None,
+        args=(),
+        kwargs=None,
+        placeholder=None,
+        disabled=False,
+        label_visibility="visible",
+    ):
+        """绑定model要求数据类型为: str"""
+        page_id = st.session_state.now_page_id
+        obj = st.session_state[page_id]["data"]
+        value = getattr(obj, model)
+        assert isinstance(value,str),f"text_input绑定的数据模型类型必须为str，此处为{type(value)}"
+
+        if model.startswith("com_"):  # 计算属性
+            st.session_state[key] = value()
+        if model.startswith("data_"):  # 普通属性
+            st.session_state[key] = value
+        args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数。
+        st.text_input(
+            label=label,
+            key=key,
+            max_chars=max_chars,
+            type=type,
+            help=help,
+            autocomplete=autocomplete,
+            kwargs=kwargs,
+            placeholder=placeholder,
+            disabled=disabled,
+            label_visibility=label_visibility,
+            on_change=_run_two_function,
+            args=args_list,
+        )
+
+    @staticmethod
+    def text_area(
+        label,
+        model: str,
+        key: str,
+        height=None,
+        max_chars=None,
+        help=None,
+        on_change_str: str = None,
+        args=(),
+        kwargs=None,
+        placeholder=None,
+        disabled=False,
+        label_visibility="visible",
+    ):
+        """绑定model要求数据类型为: str"""
+        page_id = st.session_state.now_page_id
+        obj = st.session_state[page_id]["data"]
+        value = getattr(obj, model)
+        assert isinstance(value,str),f"text_area绑定的数据模型类型必须为str，此处为{type(value)}"
+        if model.startswith("com_"):  # 计算属性
+            st.session_state[key] = value()
+        if model.startswith("data_"):  # 普通属性
+            st.session_state[key] = value
+        args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数
+
+        st.text_area(
+            label=label,
+            key=key,
+            height=height,
+            max_chars=max_chars,
+            help=help,
+            kwargs=kwargs,
+            placeholder=placeholder,
+            disabled=disabled,
+            label_visibility=label_visibility,
+            on_change=_run_two_function,
+            args=args_list,
+        )
+
+        @staticmethod
+        def chat_input(
+            model: str,
+            key: str,
+            placeholder="Your message",
+            max_chars=None,
+            disabled=False,
+            on_submit_str: str = None,
+            args=(),
+            kwargs=None,
+        ):
+            """绑定model要求数据类型为: str
+            此控件只向模型中写入，不读取"""
+
+            # 以下部分内容就是写入
+            args_list = ((model, key, on_submit_str, *args),)  # 以下为真正的渲染函数
+
+            st.chat_input(
+                key=key,
+                placeholder=placeholder,
+                max_chars=max_chars,
+                disabled=disabled,
+                kwargs=kwargs,
+                on_submit=_run_two_function,
+                args=args_list,
+            )
+
+        @staticmethod
+        def checkbox(
+            label,
+            model: str,
+            key: str,
+            on_change_str=None,
+            help=None,
+            args=(),
+            kwargs=None,
+            disabled=False,
+            label_visibility="visible",
+        ):
+            """绑定model要求数据类型为: bool"""
+            page_id = st.session_state.now_page_id
+            obj = st.session_state[page_id]["data"]
+            value = getattr(obj, model)
+            assert isinstance(value,bool),f"checkbox绑定的数据模型类型必须为bool，此处为{type(value)}"
+            if model.startswith("com_"):  # 计算属性
+                st.session_state[key] = value()
+            if model.startswith("data_"):  # 普通属性
+                st.session_state[key] = value
+            args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数
+
+            st.checkbox(
+                label=label,
+                key=key,
+                help=help,
+                kwargs=kwargs,
+                disabled=disabled,
+                label_visibility=label_visibility,
+                on_change=_run_two_function,
+                args=args_list
+            )

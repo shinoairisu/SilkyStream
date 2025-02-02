@@ -44,6 +44,19 @@ def _rewrite_value(model: str, key: str):
     dvm.page_update()  # 更新页面和参考页的所有数据
 
 
+def _get_model_value(model, control_name, data_type):
+    """使用数据模型获取数据，用于大记忆恢复术"""
+    page_id = st.session_state.now_page_id
+    obj = st.session_state[page_id]["data"]
+    value = getattr(obj, model)
+    assert model.startswith(("com_", "data_")), "使用的不是数据模型"
+    value = value if model.startswith("data_") else value()
+    assert isinstance(
+        value, data_type
+    ), f"{control_name}绑定的数据模型类型必须为{data_type}，此处为{type(value)}"
+    return value
+
+
 class EnhancedControl:
     @staticmethod
     def selectbox(
@@ -66,28 +79,16 @@ class EnhancedControl:
 
         绑定model要求数据类型为: str
         """
-        page_id = st.session_state.now_page_id
-        obj = st.session_state[page_id]["data"]
-        value = getattr(obj, model)
-        assert isinstance(value,str),f"selectbox绑定的数据模型类型必须为str，此处为{type(value)}"
+        value = _get_model_value(model=model,control_name="selectbox",data_type=str)
 
-        if model.startswith("com_"):
-            k = value()
-            if k in options:
-                st.session_state[key] = k  # 计算属性返回值直接供给到key中
-            else:
-                logger.warning("值{}不存在", k)
-                st.session_state[key] = (
-                    options[0] if options else ""
-                )  # 否则才回复到初始为止
-        if model.startswith("data_"):
-            if value in options:
-                st.session_state[key] = value  # 将数据模型的数据供给到key中
-            else:
-                logger.warning("值{}不存在", value)
-                st.session_state[key] = (
-                    options[0] if options else ""
-                )  # 否则才回复到初始为止
+        if value in options:
+            st.session_state[key] = value  # 将数据模型的数据供给到key中，大记忆恢复术，因为streamlit会清理部分过时key，导致结果不符合预期。这个操作等于是延时。
+        else:
+            logger.warning("值{}不存在", value)
+            st.session_state[key] = (
+                options[0] if options else ""
+            )  # 否则才回复到初始为止
+
         args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数。
         st.selectbox(
             label=label,
@@ -120,15 +121,10 @@ class EnhancedControl:
         label_visibility="visible",
     ):
         """绑定model要求数据类型为: str"""
-        page_id = st.session_state.now_page_id
-        obj = st.session_state[page_id]["data"]
-        value = getattr(obj, model)
-        assert isinstance(value,str),f"text_input绑定的数据模型类型必须为str，此处为{type(value)}"
 
-        if model.startswith("com_"):  # 计算属性
-            st.session_state[key] = value()
-        if model.startswith("data_"):  # 普通属性
-            st.session_state[key] = value
+        value = _get_model_value(model=model,control_name="text_input",data_type=str)
+        st.session_state[key] = value
+
         args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数。
         st.text_input(
             label=label,
@@ -161,14 +157,8 @@ class EnhancedControl:
         label_visibility="visible",
     ):
         """绑定model要求数据类型为: str"""
-        page_id = st.session_state.now_page_id
-        obj = st.session_state[page_id]["data"]
-        value = getattr(obj, model)
-        assert isinstance(value,str),f"text_area绑定的数据模型类型必须为str，此处为{type(value)}"
-        if model.startswith("com_"):  # 计算属性
-            st.session_state[key] = value()
-        if model.startswith("data_"):  # 普通属性
-            st.session_state[key] = value
+        value = _get_model_value(model=model,control_name="text_area",data_type=str)
+        st.session_state[key] = value
         args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数
 
         st.text_area(
@@ -185,63 +175,59 @@ class EnhancedControl:
             args=args_list,
         )
 
-        @staticmethod
-        def chat_input(
-            model: str,
-            key: str,
-            placeholder="Your message",
-            max_chars=None,
-            disabled=False,
-            on_submit_str: str = None,
-            args=(),
-            kwargs=None,
-        ):
-            """绑定model要求数据类型为: str
-            此控件只向模型中写入，不读取"""
+    @staticmethod
+    def chat_input(
+        model: str,
+        key: str,
+        placeholder="Your message",
+        max_chars=None,
+        disabled=False,
+        on_submit_str: str = None,
+        args=(),
+        kwargs=None,
+    ):
+        """绑定model要求数据类型为: str
+        此控件只向模型中写入，不读取"""
 
-            # 以下部分内容就是写入
-            args_list = ((model, key, on_submit_str, *args),)  # 以下为真正的渲染函数
+        # 以下部分内容就是写入
+        args_list = ((model, key, on_submit_str, *args),)  # 以下为真正的渲染函数
 
-            st.chat_input(
-                key=key,
-                placeholder=placeholder,
-                max_chars=max_chars,
-                disabled=disabled,
-                kwargs=kwargs,
-                on_submit=_run_two_function,
-                args=args_list,
-            )
+        st.chat_input(
+            key=key,
+            placeholder=placeholder,
+            max_chars=max_chars,
+            disabled=disabled,
+            kwargs=kwargs,
+            on_submit=_run_two_function,
+            args=args_list,
+        )
 
-        @staticmethod
-        def checkbox(
-            label,
-            model: str,
-            key: str,
-            on_change_str=None,
-            help=None,
-            args=(),
-            kwargs=None,
-            disabled=False,
-            label_visibility="visible",
-        ):
-            """绑定model要求数据类型为: bool"""
-            page_id = st.session_state.now_page_id
-            obj = st.session_state[page_id]["data"]
-            value = getattr(obj, model)
-            assert isinstance(value,bool),f"checkbox绑定的数据模型类型必须为bool，此处为{type(value)}"
-            if model.startswith("com_"):  # 计算属性
-                st.session_state[key] = value()
-            if model.startswith("data_"):  # 普通属性
-                st.session_state[key] = value
-            args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数
+    @staticmethod
+    def checkbox(
+        label,
+        model: str,
+        key: str,
+        on_change_str=None,
+        help=None,
+        args=(),
+        kwargs=None,
+        disabled=False,
+        label_visibility="visible",
+    ):
+        """绑定model要求数据类型为: bool"""
 
-            st.checkbox(
-                label=label,
-                key=key,
-                help=help,
-                kwargs=kwargs,
-                disabled=disabled,
-                label_visibility=label_visibility,
-                on_change=_run_two_function,
-                args=args_list
-            )
+        value = _get_model_value(model=model,control_name="checkbox",data_type=bool)
+        st.session_state[key] = value
+        
+        args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数
+
+        st.checkbox(
+            label=label,
+            key=key,
+            help=help,
+            kwargs=kwargs,
+            disabled=disabled,
+            label_visibility=label_visibility,
+            on_change=_run_two_function,
+            args=args_list,
+        )

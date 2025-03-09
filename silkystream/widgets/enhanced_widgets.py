@@ -10,7 +10,7 @@ com开头的计算属性，是只读的
 import streamlit as st
 from typing import Callable, Any, Union, List, Tuple, Set
 from silkystream.data_vm import DataViewModel as dvm
-from silkystream.custom_utils.enhanced_param_types import AbstractItem
+from silkystream.custom_utils.abstract_item import AbstractItem
 from loguru import logger
 
 

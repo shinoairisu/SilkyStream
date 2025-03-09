@@ -103,9 +103,3 @@ if __name__ == "__main__":
             self.data_age: int = 18
 
         def watch_data_uname(self, old_value, new_value): ...
-
-        @st.cache_data
-        @staticmethod
-        def cache_pdf(path): ...  # 计算函数对
-        def computed_pdf(self):
-            return TestClass.cache_pdf(self.data_uname)

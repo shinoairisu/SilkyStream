@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from loguru import logger
 
 import streamlit as st
-from silkystream.custom_utils.enhanced_param_types import AbstractItem
+from silkystream.custom_utils.abstract_item import AbstractItem
 
 T = TypeVar("T")
 
@@ -58,7 +58,7 @@ def update_data(
                 if watch_func:
                     watch_func(old_data,new_value)
     else:
-        """如果不是基础参数，调用data_handler_function进行数据处理"""
+        """如果不是基础参数，比如list，调用data_handler_function进行数据处理"""
         if not data_handler_function:
             raise ValueError("对于非基础类型数据，必须提供一个数据处理函数")
         temp = copy(old_data) # 为了节省内存和时间，所以使用浅拷贝。因此本函数无法处理复杂情况。

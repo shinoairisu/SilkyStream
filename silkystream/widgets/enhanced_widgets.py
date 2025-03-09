@@ -9,8 +9,8 @@ com开头的计算属性，是只读的
 
 import streamlit as st
 from typing import Callable, Any, Union, List, Tuple, Set
-from .data_vm import DataViewModel as dvm
-from .utils.enhanced_param_types import AbstractItem
+from silkystream.data_vm import DataViewModel as dvm
+from silkystream.custom_utils.enhanced_param_types import AbstractItem
 from loguru import logger
 
 
@@ -62,7 +62,7 @@ class EnhancedControl:
     @staticmethod
     def selectbox(
         label,
-        model: str|AbstractItem,
+        model: str | AbstractItem,
         key: str,
         options: Union[List[str], Tuple[str], Set[str]],  # 尽量不要放数字进来
         format_func: Callable[[Any], Any] = str,

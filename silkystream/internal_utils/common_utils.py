@@ -4,8 +4,7 @@ from dataclasses import dataclass
 from loguru import logger
 
 import streamlit as st
-
-from .base_classes import AbstractItem
+from silkystream.custom_utils.enhanced_param_types import AbstractItem
 
 T = TypeVar("T")
 
@@ -105,6 +104,6 @@ def update_all_page_data():
                 raise ValueError(f"新旧数据类型不一致，请检查问题。新类型为：{type(new_data)}，旧类型为：{type(old_data)}")
             if new_data == old_data:
                 continue # 数据没变就不管
-            if watch_func:
+            if watch_func: # 变了的话先执行watch
                 watch_func(old_data,new_data)
             setattr(copy_now_page,attr,deepcopy(new_data))

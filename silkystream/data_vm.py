@@ -22,7 +22,7 @@ from dataclasses import dataclass
 import streamlit as st
 from loguru import logger
 
-from silkystream.utils.common_utils import *
+from silkystream.internal_utils.common_utils import *
 
 
 T = TypeVar("T")

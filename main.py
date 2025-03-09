@@ -1,6 +1,6 @@
 import streamlit as st
 from silkystream.data_vm import DataViewModel as dvm
-from silkystream.enhanced_control import EnhancedControl as ec
+from silkystream.widgets.enhanced_widgets import EnhancedControl as ec
 
 # class TestModel():
 #     def __init__(self):

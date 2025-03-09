@@ -6,7 +6,7 @@ todo:
 """
 from typing import List
 import streamlit as st
-from silkystream.utils.common_utils import *
+from silkystream.internal_utils.common_utils import *
 
 class DataOperator(object):
     @staticmethod

@@ -5,7 +5,7 @@
 """
 import streamlit as st
 from silkystream.data_vm import DataViewModel as dvm
-from silkystream.enhanced_widgets import EnhancedControl as ec
+from silkystream.widgets.enhanced_widgets import EnhancedControl as ec
 from silkystream.safe_tools import SafeTools as safe,GlobalState as gs
 from typing import List
 

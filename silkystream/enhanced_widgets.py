@@ -10,6 +10,7 @@ com开头的计算属性，是只读的
 import streamlit as st
 from typing import Callable, Any, Union, List, Tuple, Set
 from .data_vm import DataViewModel as dvm
+from .utils.enhanced_param_types import AbstractItem
 from loguru import logger
 
 
@@ -61,7 +62,7 @@ class EnhancedControl:
     @staticmethod
     def selectbox(
         label,
-        model: str,
+        model: str|AbstractItem,
         key: str,
         options: Union[List[str], Tuple[str], Set[str]],  # 尽量不要放数字进来
         format_func: Callable[[Any], Any] = str,
@@ -79,10 +80,12 @@ class EnhancedControl:
 
         绑定model要求数据类型为: str
         """
-        value = _get_model_value(model=model,control_name="selectbox",data_type=str)
+        value = _get_model_value(model=model, control_name="selectbox", data_type=str)
 
         if value in options:
-            st.session_state[key] = value  # 将数据模型的数据供给到key中，大记忆恢复术，因为streamlit会清理部分过时key，导致结果不符合预期。这个操作等于是延时。
+            st.session_state[key] = (
+                value  # 将数据模型的数据供给到key中，大记忆恢复术，因为streamlit会清理部分过时key，导致结果不符合预期。这个操作等于是延时。
+            )
         else:
             logger.warning("值{}不存在", value)
             st.session_state[key] = (
@@ -122,7 +125,7 @@ class EnhancedControl:
     ):
         """绑定model要求数据类型为: str"""
 
-        value = _get_model_value(model=model,control_name="text_input",data_type=str)
+        value = _get_model_value(model=model, control_name="text_input", data_type=str)
         st.session_state[key] = value
 
         args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数。
@@ -157,7 +160,7 @@ class EnhancedControl:
         label_visibility="visible",
     ):
         """绑定model要求数据类型为: str"""
-        value = _get_model_value(model=model,control_name="text_area",data_type=str)
+        value = _get_model_value(model=model, control_name="text_area", data_type=str)
         st.session_state[key] = value
         args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数
 
@@ -216,9 +219,9 @@ class EnhancedControl:
     ):
         """绑定model要求数据类型为: bool"""
 
-        value = _get_model_value(model=model,control_name="checkbox",data_type=bool)
+        value = _get_model_value(model=model, control_name="checkbox", data_type=bool)
         st.session_state[key] = value
-        
+
         args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数
 
         st.checkbox(

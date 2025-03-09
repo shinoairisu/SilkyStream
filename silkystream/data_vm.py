@@ -15,14 +15,15 @@ page_update
 正式的页面内容....
 """
 
-from copy import deepcopy
 from typing import Type, TypeVar
-from dataclasses import dataclass
 
 import streamlit as st
 from loguru import logger
 
-from silkystream.internal_utils.common_utils import *
+from silkystream.internal_utils.common_utils import (
+    update_all_page_data,
+    rerun_all_abstract_item,
+)
 
 
 T = TypeVar("T")
@@ -45,7 +46,8 @@ class DataViewModel(object):
         if now_page:  # 因为get调用时不一定是当前页面
             st.session_state.now_page_id = page_id
         st.session_state.get_flag = False  # set之前不能出现这个flag
-        st.session_state.reference_page = [] # 每次都清空这个属性
+        rerun_all_abstract_item()  # 每次都要执行所有页面的所有abstractitem的rerun。
+        st.session_state.reference_page = []  # 每次都清空这个属性
         obj = data_class_name()
         obj_copy = data_class_name()
         obj.page_id = page_id
@@ -54,7 +56,7 @@ class DataViewModel(object):
             page_id in st.session_state and "data" in st.session_state[page_id]
         ):  # 如果有本页面的数据类就获取
             obj = st.session_state[page_id]["data"]
-            DataViewModel.page_update() # 每次都会更新所有页面数据
+            DataViewModel.page_update()  # 每次都会更新所有页面数据
         else:
             st.session_state[page_id] = {}
             st.session_state[page_id]["data"] = obj
@@ -76,13 +78,15 @@ class DataViewModel(object):
             st.session_state["reference_page"].append(page_id)
         if page_id not in st.session_state:
             logger.warning("未找到页面id:{}", page_id)
-            obj = DataViewModel.set_datavm(page_id, data_class_name, now_page=False) # now_page为false指的是虽然新建了一个页面对象，但是不是现在的主页面
+            obj = DataViewModel.set_datavm(
+                page_id, data_class_name, now_page=False
+            )  # now_page为false指的是虽然新建了一个页面对象，但是不是现在的主页面
             return obj
         page = st.session_state[page_id]
         if not isinstance(page, data_class_name):
             # 类型错误不会导致报错，但是会警告。另外后续IDE提示都将是错误的。
             logger.warning("页面{}使用的数据模型类不是当前获取的类型，请自查...")
-        return page # 返回的是对应页的对象
+        return page  # 返回的是对应页的对象
 
     @staticmethod
     def page_update():
@@ -96,6 +100,7 @@ class DataViewModel(object):
 
 
 if __name__ == "__main__":
+
     class TestClass(object):
         def __init__(self):
             self.data_uid: str = "00000000"

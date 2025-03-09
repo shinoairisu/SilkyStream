@@ -8,7 +8,8 @@ from loguru import logger
 class SafeTools(object):
     @staticmethod
     def init_locks(lock_names:Set[str]=set()):
-        """在初始化页面新建init_locks,均是全局变量。locks是只读的，不可写
+        """在初始化页面新建init_locks,均是全局变量。
+        locks是只读的，不可写
         init函数有一个问题，就是必须写在主页中，而且服务器启动后，必须启动一次主页。如果不启动主页将出现问题
         lock_names 是一长串锁的名字
         """

@@ -1,7 +1,12 @@
+"""增强对象
+BaseItem与AutoUpdateBaseItem是可以作为绑定通用的data_数据模型
+AIHistoryItem这种是复杂类模型，作用单一，不用于绑定数据模型，而主要是内部操作用。
+BaseItem功能：平滑数据类型，可以多类型控件公用一个数据模型。并且可以用于操作list深层对象。
+"""
 import copy
-from typing import Tuple, Callable, Any
-from abc import ABC, abstractmethod
+from typing import Tuple, Callable, Any, Optional
 from silkystream.custom_utils.abstract_item import AbstractItem
+
 
 class BaseItem(AbstractItem):
     """用于基础类型，比如：int str float bool等"""
@@ -15,36 +20,49 @@ class BaseItem(AbstractItem):
 
     @value.setter
     def value(self, value):
-        if isinstance(value,(int,str,float,bool,complex)):
-            self._value = value
+        if isinstance(value, (int, str, float, bool, complex)):
+            func = type(self._value)
+            try:
+                value = func(value)
+            except Exception:
+                self._value = func()
         else:
             raise ValueError("不是基础类型，无法使用本类")
 
+
 class AutoUpdateBaseItem(AbstractItem):
     """自动更新的基础参数"""
-    def __init__(self, value, watch_func:Callable[[Any,Any],None]):
+
+    def __init__(self, value, watch_func: Callable[[Any, Any], None]):
         super().__init__(value)
         self.watch_func = watch_func
+
     @property
     def value(self):
         return self._value
-    
+
     @value.setter
     def value(self, value):
-        if isinstance(value,(int,str,float,bool,complex)):
+        if isinstance(value, (int, str, float, bool, complex)):
             if self._value == value:
                 return
             else:
-                self.watch_func(self._value,value) # old,new
+                func = type(self._value)
+                try:
+                    value = func(value)
+                except Exception:
+                    value = func()
+                self.watch_func(self._value, value)  # old,new
                 self._value = value
         else:
             raise ValueError("不是基础类型，无法使用本类")
-    
+
     def __eq__(self, _):
         """本类更新参数时会自动执行watch_func，因此不参与全局监视运算
         适合List中使用
         """
         return True
+
 
 class AIHistoryItem(AbstractItem):
     """用于AI对话历史记录"""
@@ -132,22 +150,34 @@ class ProgressItem(AbstractItem):
 
 class WatchDogItem(AbstractItem):
     """监视文件/数据等
-    wi1 = WatchDogItem(self.set_file) # 每次rerun时会执行wi1下的rerun，就能监视一些硬盘数据等。
-    file = []
-    每次rerun时都会给
+    wi1 = WatchDogItem(list,self.set_file) # 每次rerun时会执行wi1下的rerun，就能监视一些硬盘数据等
+    通过wi1.value可以获得最新的监视结果。
     """
 
-    def __init__(self, value: Callable):
-        super().__init__(value)
+    def __init__(self, data_type, watch_function: Callable, args: Optional[tuple] = None):
+        """先定义监视函数返回的数据类型，也可以理解为生成一个什么类型的数据"""
+        super().__init__(None)
+        self.watch_function = watch_function
+        self.args = args
+        self.data_type = data_type
+        self.rerun()
 
     @property
-    def value(self) -> None:
-        return None
+    def value(self) -> Any:
+        return self._value
 
     @value.setter
-    def value(self, _): ...
+    def value(self, value):
+        if isinstance(value,self.data_type):
+            self._value = value
+        else:
+            raise ValueError(f"输入类别与{self.data_type}不一致，watchdog门禁不通过")
+
     def rerun(self):
-        self._value()
+        if self.args:
+            self.value = self.watch_function(*self.args)
+        else:
+            self.value = self.watch_function()
 
 
 class OnceItem(AbstractItem):

@@ -1,8 +1,6 @@
-"""数据操作函数集合，支持dict，list，set
-todo:
-本函数并未实现当初要求的内容。
-现在想要实现的是：插入list时，watch拿到的是新旧list。
-
+"""浅层集合操作函数。
+因为深层集合不支持watch函数
+暂时只支持list
 """
 from typing import Any
 

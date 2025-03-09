@@ -107,3 +107,27 @@ def update_all_page_data():
             if watch_func: # 变了的话先执行watch
                 watch_func(old_data,new_data)
             setattr(copy_now_page,attr,deepcopy(new_data))
+
+
+
+def rerun_all_abstract_item():
+    """执行所有abstract对象的rerun。
+    注意，同样只执行浅层abstract对象。而且只有浅层对象有意义
+    深层对象只可以是baseitem和autobaseitem。
+    """
+    pages = [
+        st.session_state.now_page_id,
+        *st.session_state.reference_page,
+    ]  # 获取所有要更新的页面
+    for page_id in pages:  # 拿到对应id
+        now_page = st.session_state[page_id]["data"] # 对所有记录在册的page进行迭代
+        for attr in dir(now_page):
+            if not attr.startswith("data_"):  # 如果不是数据属性就跳过
+                continue
+            obj = getattr(now_page, attr, None)  # 拿到数据
+            if isinstance(obj,AbstractItem):
+                obj.rerun()
+
+
+
+

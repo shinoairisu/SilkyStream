@@ -232,6 +232,7 @@ class EnhancedControl:
         label,
         model: str,
         key: str,
+        page_obj: Any = None,  # 默认是当前页
         on_change_str=None,
         help=None,
         args=(),
@@ -239,9 +240,8 @@ class EnhancedControl:
         disabled=False,
         label_visibility="visible",
     ):
-        """绑定model要求数据类型为: bool"""
 
-        value = _get_model_value(model=model, control_name="checkbox", data_type=bool)
+        value = bool(_get_model_value(model=model, page_obj=page_obj))
         st.session_state[key] = value
 
         args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数
@@ -262,6 +262,7 @@ class EnhancedControl:
         label,
         model: str,
         key: str,
+        page_obj: Any = None,  # 默认是当前页
         on_change_str=None,
         help=None,
         args=(),
@@ -269,17 +270,48 @@ class EnhancedControl:
         disabled=False,
         label_visibility="visible",
     ):
-        """绑定model要求数据类型为: bool"""
 
-        value = _get_model_value(model=model, control_name="checkbox", data_type=bool)
+        value = str(_get_model_value(model=model, page_obj=page_obj))
         st.session_state[key] = value
 
-        args_list = ((model, key, on_change_str, *args),)  # 以下为真正的渲染函数
+        args_list = (
+            (model, key, page_obj, on_change_str, *args),
+        )  # 以下为真正的渲染函数
 
-        st.checkbox(
+        st.color_picker(
             label=label,
             key=key,
             help=help,
+            kwargs=kwargs,
+            disabled=disabled,
+            label_visibility=label_visibility,
+            on_change=_run_two_function,
+            args=args_list,
+        )
+
+    @staticmethod
+    def feedback(
+        model: str,
+        key: str,
+        options="thumbs",
+        page_obj: Any = None,  # 默认是当前页
+        on_change_str=None,
+        args=(),
+        kwargs=None,
+        disabled=False,
+        label_visibility="visible",
+    ):
+
+        value = str(_get_model_value(model=model, page_obj=page_obj))
+        st.session_state[key] = value
+
+        args_list = (
+            (model, key, page_obj, on_change_str, *args),
+        )  # 以下为真正的渲染函数
+
+        st.feedback(
+            options=options,
+            key=key,
             kwargs=kwargs,
             disabled=disabled,
             label_visibility=label_visibility,

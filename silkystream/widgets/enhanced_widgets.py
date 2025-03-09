@@ -45,7 +45,7 @@ def _rewrite_value(model: str, key: str, page_obj=None):
         page_id = st.session_state.now_page_id
         page_obj = st.session_state[page_id]["data"]
     obj = getattr(page_obj, model, None)
-    if not obj:
+    if obj is None:
         raise ValueError("值对象不可以是None")
     if isinstance(obj, AbstractItem):
         obj.value = st.session_state[key]
@@ -302,7 +302,7 @@ class EnhancedControl:
         label_visibility="visible",
     ):
 
-        value = str(_get_model_value(model=model, page_obj=page_obj))
+        value = int(_get_model_value(model=model, page_obj=page_obj))
         st.session_state[key] = value
 
         args_list = (
@@ -317,4 +317,44 @@ class EnhancedControl:
             label_visibility=label_visibility,
             on_change=_run_two_function,
             args=args_list,
+        )
+
+    @staticmethod
+    def radio(
+        label: str,
+        options: list,
+        model: str,
+        key: str,
+        page_obj: Any = None,  # 默认是当前页
+        on_change_str=None,
+        help=None,
+        args=(),
+        kwargs=None,
+        disabled=False,
+        label_visibility="visible",
+        horizontal=False,
+        captions=None,
+    ):
+
+        value = str(_get_model_value(model=model, page_obj=page_obj))
+        if value in options:
+            st.session_state[key] = value
+        else:
+            st.session_state[key] = options[0] if options else ""
+        args_list = (
+            (model, key, page_obj, on_change_str, *args),
+        )  # 以下为真正的渲染函数
+
+        st.feedback(
+            label=label,
+            options=options,
+            key=key,
+            help=help,
+            kwargs=kwargs,
+            disabled=disabled,
+            label_visibility=label_visibility,
+            on_change=_run_two_function,
+            args=args_list,
+            horizontal=horizontal,
+            captions=captions,
         )

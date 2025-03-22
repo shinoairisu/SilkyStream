@@ -3,8 +3,9 @@ BaseItem与AutoUpdateBaseItem是可以作为绑定通用的data_数据模型
 AIHistoryItem这种是复杂类模型，作用单一，不用于绑定数据模型，而主要是内部操作用。
 BaseItem功能：平滑数据类型，可以多类型控件公用一个数据模型。并且可以用于操作list深层对象。
 """
+
 import copy
-from typing import Tuple, Callable, Any, Optional
+from typing import Tuple, Callable, Any, Optional, List
 from silkystream.custom_utils.abstract_item import AbstractItem
 
 
@@ -87,7 +88,7 @@ class AIHistoryItem(AbstractItem):
         """输入值会变成添加值 ("user","你好")"""
         self._value.append(value)
 
-    def __eq__(self, value):
+    def __eq__(self, _):
         """当想关闭一个值的watch判断时，本函数返回True即可"""
         return True
 
@@ -96,7 +97,7 @@ class ProgressItem(AbstractItem):
     """用于进度条"""
 
     def __init__(
-        self, value: Tuple[int | float, str] | int | float, min_value=0, max_value=100
+        self, value: Tuple[int | float, str] | int | float, min_value=0, max_value=100,text=""
     ):
         """
         方案1：(15,"等待中...")  同时放入数字和文字
@@ -107,6 +108,7 @@ class ProgressItem(AbstractItem):
         self.__value_setter(value=value)
         self.__regist = []  # 存储注册的进度条
         self.__validate_value(value=value)
+        self.text = text
 
     def __validate_value(self, value):
         assert self.min_value <= value <= self.max_value, "value值超出进度条范围"
@@ -138,6 +140,7 @@ class ProgressItem(AbstractItem):
             self.text = ""
 
     def regist_progress(self, obj):
+        obj.progress(self._value, text=self.text) # 跨步到现在值
         self.__regist.append(obj)
 
     def __str__(self):
@@ -154,7 +157,9 @@ class WatchDogItem(AbstractItem):
     通过wi1.value可以获得最新的监视结果。
     """
 
-    def __init__(self, data_type, watch_function: Callable, args: Optional[tuple] = None):
+    def __init__(
+        self, data_type, watch_function: Callable, args: Optional[tuple] = None
+    ):
         """先定义监视函数返回的数据类型，也可以理解为生成一个什么类型的数据"""
         super().__init__(None)
         self.watch_function = watch_function
@@ -168,7 +173,7 @@ class WatchDogItem(AbstractItem):
 
     @value.setter
     def value(self, value):
-        if isinstance(value,self.data_type):
+        if isinstance(value, self.data_type):
             self._value = value
         else:
             raise ValueError(f"输入类别与{self.data_type}不一致，watchdog门禁不通过")
@@ -200,3 +205,30 @@ class OnceItem(AbstractItem):
     def __bool__(self):
         """bool模式下返回的是真实值，只有查看value时才会只能访问一次"""
         return self._value
+
+
+class ListItem(AbstractItem):
+    """列表"""
+
+    def __init__(
+        self, value: List[str] | str, watch_fun: Callable = None
+    ):
+        super().__init__(value if isinstance(value, list) else [value])
+        self.watch_fun = watch_fun
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value: str | list):
+        temp = self._value.copy()
+        if isinstance(value, list):
+            self._value = value.copy()
+        else:
+            self._value.append(value)
+        if self.watch_fun:
+            self.watch_fun(temp,self._value) # old,new
+
+    def __eq__(self, _):
+        return True

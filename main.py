@@ -1,24 +1,34 @@
+"""站点入口"""
+
+import asyncio
 import streamlit as st
-from silkystream.data_vm import DataViewModel as dvm
-from silkystream.widgets.enhanced_widgets import EnhancedControl as ec
+from dotenv import load_dotenv
 
-# class TestModel():
-#     def __init__(self):
-#         self.data_text:str = ""
-#     def watch_data_text(self,old,new):
-#         print(f"内容变更")
+load_dotenv("./config/.env", verbose=True)  # 载入配置文件
 
 
-# ts = dvm.set_datavm("page_1",data_class_name=TestModel) # 返回当前页的数据模型
-# st.write("""# 数据模型绑定展示
-         
-# - 修改任何单行或者多行文本框的内容，按下enter或者ctrl+enter，单行和多行文本框内容会同时改变。
+async def main():
+    """异步"""
+    if not st.session_state.get("main_thread_anchor", None):
+        st.session_state["main_thread_anchor"] = True
+        st.session_state["async_rerun_task"] = []  # 由next_tick打上来的可异步操作
+        st.session_state["sync_rerun_task"] = []  # 由next_tick打上来的同步操作
+    if async_tasks := st.session_state.get("async_rerun_task"):
+        """搞定所有由next_tick打上来的可异步操作"""
+        real_task = [
+            async_task(*async_task_params)
+            for async_task, async_task_params in async_tasks
+        ]
+        await asyncio.gather(*real_task)  # 把上次要执行的都执行完
+        st.session_state.get("async_rerun_task").clear()
+    if sync_tasks := st.session_state.get("sync_rerun_task"):
+        """搞定所有由next_tick打上来的同步操作"""
+        for sync_task, sync_task_params in sync_tasks:
+            sync_task(*sync_task_params)
+        st.session_state.get("sync_rerun_task").clear()
 
-# """)
-# ec.text_input(label="输入你想输入的",model="data_text",key="test1")
-# ec.text_area(label="输入你想输入的",model="data_text",key="test2")
+    await SPAPageUI(...).rander()  # 渲染主页
 
-class a(object):
-    """你好"""
 
-print("哦")
+if __name__ == "__main__":
+    asyncio.run(main())

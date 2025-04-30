@@ -8,7 +8,7 @@ load_dotenv("./config/.env", verbose=True)  # 载入配置文件
 
 
 async def main():
-    """异步"""
+    """异步入口"""
     if not st.session_state.get("main_thread_anchor", None):
         st.session_state["main_thread_anchor"] = True
         st.session_state["async_rerun_task"] = []  # 由next_tick打上来的可异步操作

@@ -31,8 +31,8 @@ class ViewModel(BaseViewModel):
 
 
 class SubUI1(BaseUI):
-    def __init__(self, namespace, mq_namespace,slot=None,name="火烈鸟"):
-        super().__init__(namespace, mq_namespace,slot=slot)
+    def __init__(self, namespace, mq_namespace,slot=None,name="火烈鸟",key=None):
+        super().__init__(namespace, mq_namespace,slot=slot,key=key)
         self.data = ViewModel(namespace, mq_namespace,name=name)
 
     async def render(self):

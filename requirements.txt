@@ -5,12 +5,15 @@ beautifulsoup4
 dotenv
 httpx
 kombu
+langchain-openai
+langchain-text-splitters
 loguru
 lxml
 nanoid
+pyparsing
 stqdm
-streamlit==1.41.1
 streamlit-javascript
+streamlit==1.41.1
 taskgroup
 tenacity
 tqdm

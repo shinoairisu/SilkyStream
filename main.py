@@ -15,8 +15,11 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+nm.init_data("app", "namespace", {})  # 初始化同步回调队列
 nm.init_data("app", "async_rerun_task", [])  # 初始化异步回调队列
 nm.init_data("app", "sync_rerun_task", [])  # 初始化同步回调队列
+nm.set_namespace_key("app","data","namespace",set()) # 自扫描命名空间
+nm.set_namespace_key("app","data","mq_namespace",set())
 
 
 async def main():

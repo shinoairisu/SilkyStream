@@ -57,7 +57,7 @@ class IndexUI(BaseUI):
             # 测试使用slot进行UI挂载
             colum1, colum2 = st.columns(2)
             await SubUI1(
-                namespace="sub1", mq_namespace="sub1_mq", slot=colum1, name="大公鸡"
+                namespace="sub1", mq_namespace="sub1_mq", slot=colum1, name="大公鸡",key="tester"
             ).render()
             await SubUI1(
                 namespace="sub2", mq_namespace="sub2_mq", slot=colum2, name="猫猫鸡"
@@ -76,7 +76,7 @@ class IndexUI(BaseUI):
                         name="苏浩",
                     ).render()
                 )
-                st.write("## 他是老北京人 \n\n 但是他不喝豆汁")
+                st.write("==== 他是老北京人 \n\n 但是他不喝豆汁 =====")
                 tg.create_task(
                     SubUI1(
                         namespace="sub4",

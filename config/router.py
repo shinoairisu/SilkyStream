@@ -8,9 +8,26 @@
 一般来说，一个应用页面，只需要一个路由组件就够了，可以切换页面的主体即可。
 streamlit只适合用于做低保真项目，所以路由实现的较为简单，但是可用。
 
-Router(root="router",{
+r = Router(root="router",{
     # 配置你的hello组件路由为 http://localhost:8080/?router=hello&参数名=参数值
     "/":to_router(组件类名,{"参数名":{"required":True,"default":默认值,"type":int}}) # 默认路由
     "hello":to_router(组件类名,{"参数名":{"required":True,"default":默认值,"type":int}}) 
 })
+
+Router 在页面里才执行。此时只剩一个slot参数需要填写。
+
+from xx import r
+
+r(slot=xxx).render()
 """
+import streamlit as st
+
+def to_router():
+    pass
+
+
+class Router(object):
+    """
+    路由组件
+    """
+    pass

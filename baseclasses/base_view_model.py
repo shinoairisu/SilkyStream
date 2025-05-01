@@ -1,3 +1,4 @@
+import os
 import asyncio
 from typing import Any, Callable
 
@@ -19,6 +20,28 @@ class BaseViewModel(object):
         """
         self.namespace = namespace
         self.mq_namespace = mq_namespace
+        nm_space:set = nm.get_namespace_key("app","data","namespace")
+        mq_space:set = nm.get_namespace_key("app","data","mq_namespace")
+        
+        check = bool(int(os.environ.get("DEBUG",1)))
+        if check:
+            if namespace in nm_space:
+                logger.error("私有namespace自检失败！重复的namespace：{}",namespace)
+                raise ValueError(f"私有namespace自检失败！重复的namespace：{namespace}")
+            elif namespace in mq_space:
+                logger.error("私有namespace自检失败！使用的namespace为信道namespace：{}",namespace)
+                raise ValueError(f"私有namespace自检失败！使用的namespace为信道namespace：{namespace}")
+            elif mq_space in nm_space:
+                logger.error("mq_namespace自检失败！信道namespace：{}存在于私有namespace中！",mq_namespace)
+                raise ValueError(f"mq_namespace自检失败！信道namespace：{mq_namespace}存在于私有namespace中！")
+            elif mq_namespace == namespace:
+                logger.error("mq_namespace自检失败！私有namespace和信道namespace名称一样：{}！",namespace)
+                raise ValueError(f"mq_namespace自检失败！私有namespace和信道namespace名称一样：{namespace}！")
+            else:
+                nm_space.add(namespace)
+                mq_space.add(mq_namespace)
+
+
 
     def _init_data(self, key: str, value: Any):
         """

@@ -47,13 +47,7 @@ class BaseViewModel(object):
         """
         return nm.get_namespace_key(self.namespace, "data", key)
 
-    def _get_key(self, key: str):
-        """
-        使用数据key获得真实的session_state中的key
-        """
-        return f"{self.namespace}::data::{key}"
-
-    async def _pub(self, message, channel="message", namespace=None, switch=True):
+    async def _publish(self, message, channel="message", namespace=None, switch=True):
         """
         默认是给mq的message信道里发消息
         switch 是否接收
@@ -63,16 +57,17 @@ class BaseViewModel(object):
         await nm.pub(namespace, channel, message, switch=switch)
         logger.debug("向{}的信道{}发送新消息：{}", namespace, channel, message)
 
-    async def _sub(
+    async def _on(
         self,
-        channel: str,
         namespace: str,
         acallback: Callable,
+        channel: str = "message",
         timeout: float = 10.0,
         switch: bool = True,
     ) -> Any | None:
         """
-        本函数和on的区别是，只执行一次。可以在while中执行。
+        监听一个信道的消息，并执行一个回调
+        本函数只执行一次。可以在while中执行实现实时异步监听。
         监听某个命名空间信道的数据，通常是子组件，或者别的组件
         timeout设置监听超时，超时返回空
         acallback是一个异步函数, 格式为：func。要有一个参数：message。
@@ -87,8 +82,8 @@ class BaseViewModel(object):
         except:
             logger.debug("{}的信道{}中，暂时消息为空")
             return
-
-        await acallback(message)
+        if message is not None:
+            await acallback(message)
 
     async def listen(self):
         """

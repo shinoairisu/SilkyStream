@@ -1,7 +1,4 @@
-"""
-站点入口
-代码内容基本不用修改，除了个别配置内容
-"""
+"""站点入口"""
 
 import asyncio
 
@@ -25,23 +22,21 @@ nm.init_data("app", "sync_rerun_task", [])  # 初始化同步回调队列
 async def main():
     """异步UI入口"""
     if async_tasks := nm.get_namespace_key("app", "data", "async_rerun_task"):
-        """
-        搞定所有由next_tick打上来的可异步操作
-        每个任务callback结构都是：
-        (函数,(参数表)) 有参数函数
-        (函数,None) 无参数函数
-        """
+        # 搞定所有由next_tick打上来的可异步操作
+        # 每个任务callback结构都是：
+        # (函数,(参数表)) 有参数函数
+        # (函数,None) 无参数函数
         real_task = []
         for async_task, async_task_params in async_tasks:
             if async_task_params is None:
-                real_task.append(real_task)
+                real_task.append(async_task())
             else:
-                async_task(*async_task_params)
+                real_task.append(async_task(*async_task_params))
         await asyncio.gather(*real_task)  # 把上次要执行的都执行完
         async_tasks.clear()  # 清空回调队列
 
     if sync_tasks := nm.get_namespace_key("app", "data", "sync_rerun_task"):
-        """搞定所有由next_tick手动打上来的同步操作 (函数,(参数表)) (函数,None)"""
+        # 搞定所有由next_tick手动打上来的同步操作 (函数,(参数表)) (函数,None)
         for sync_task, sync_task_params in sync_tasks:
             if sync_task_params is None:
                 sync_task()

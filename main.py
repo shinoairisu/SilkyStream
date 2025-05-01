@@ -1,33 +1,55 @@
-"""站点入口"""
+"""
+站点入口
+代码内容基本不用修改，除了个别配置内容
+"""
 
 import asyncio
+
 import streamlit as st
 from dotenv import load_dotenv
+from utils import namespace_manager as nm
+from components.index_ui import IndexUI
 
 load_dotenv("./config/.env", verbose=True)  # 载入配置文件
 
+st.set_page_config(
+    page_title="SilkyStream V3.0模板工程",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+nm.init_data("app", "async_rerun_task", [])  # 初始化异步回调队列
+nm.init_data("app", "sync_rerun_task", [])  # 初始化同步回调队列
+
 
 async def main():
-    """异步入口"""
-    if not st.session_state.get("main_thread_anchor", None):
-        st.session_state["main_thread_anchor"] = True
-        st.session_state["async_rerun_task"] = []  # 由next_tick打上来的可异步操作
-        st.session_state["sync_rerun_task"] = []  # 由next_tick打上来的同步操作
-    if async_tasks := st.session_state.get("async_rerun_task"):
-        """搞定所有由next_tick打上来的可异步操作"""
-        real_task = [
-            async_task(*async_task_params)
-            for async_task, async_task_params in async_tasks
-        ]
+    """异步UI入口"""
+    if async_tasks := nm.get_namespace_key("app", "data", "async_rerun_task"):
+        """
+        搞定所有由next_tick打上来的可异步操作
+        每个任务callback结构都是：
+        (函数,(参数表)) 有参数函数
+        (函数,None) 无参数函数
+        """
+        real_task = []
+        for async_task, async_task_params in async_tasks:
+            if async_task_params is None:
+                real_task.append(real_task)
+            else:
+                async_task(*async_task_params)
         await asyncio.gather(*real_task)  # 把上次要执行的都执行完
-        st.session_state.get("async_rerun_task").clear()
-    if sync_tasks := st.session_state.get("sync_rerun_task"):
-        """搞定所有由next_tick打上来的同步操作"""
-        for sync_task, sync_task_params in sync_tasks:
-            sync_task(*sync_task_params)
-        st.session_state.get("sync_rerun_task").clear()
+        async_tasks.clear()  # 清空回调队列
 
-    await SPAPageUI(...).rander()  # 渲染主页
+    if sync_tasks := nm.get_namespace_key("app", "data", "sync_rerun_task"):
+        """搞定所有由next_tick手动打上来的同步操作 (函数,(参数表)) (函数,None)"""
+        for sync_task, sync_task_params in sync_tasks:
+            if sync_task_params is None:
+                sync_task()
+            else:
+                sync_task(*sync_task_params)
+        sync_tasks.clear()  # 清空回调队列
+
+    await IndexUI(namespace="index",mq_namespace="index_mq").render()  # 渲染主页
 
 
 if __name__ == "__main__":

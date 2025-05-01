@@ -1,13 +1,13 @@
-"""本项目的命名空间管理器，管理信道、信息存储等
-本项目中，命名空间符号为`::`，比如`index::mq::output`
+"""
+命名空间管理器，管理信道、信息存储等
+命名空间符号为`::`，比如`index::mq::output`
 信道都是`mq`，数据都是`data`
 """
 
 import asyncio
-from typing import List, Any
+from typing import Any
 
 import streamlit as st
-from loguru import logger
 
 
 def get_namespace_key(namespace, domain, channel):
@@ -64,6 +64,7 @@ def init_data(namespace, key, value) -> Any:
     namespace 是控件的主命名空间，还会有radio_namespace是广播命名空间
     key 是键，也就是channel的别称
     value 是值
+    返回设置的value
     """
     init_namespace_key(namespace, "data", key, value)
     return value
@@ -95,6 +96,6 @@ async def pub(namespace, channel, value, switch=True):
     # 开启发布
     pub_queue: asyncio.Queue = get_namespace_key(namespace, "mq", channel)
     if pub_queue is None:
-        pub_queue = init_message_queue(namespace, channel)
+        pub_queue = init_mq(namespace, channel)
     await pub_queue.put(value)
     await asyncio.sleep(1e-3)  # 给消费者获取的时间,put的速度太快了。

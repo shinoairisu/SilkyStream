@@ -1,22 +1,25 @@
 import asyncio
 
-async def producer(queue:asyncio.Queue):
+async def lala():
     for i in range(100):
-        await queue.put(i)
-        await asyncio.sleep(1e-3)
-        print("塞入一个元素")
+        print(i)
+        await asyncio.sleep(0.01)
 
-async def consumer(queue):
-    for i in range(100):
-        x = await queue.get()
-        print(x)
-    # n = 0
-    # while True:
-    #     res = await queue.get()
-    #     print(res)
+def xx():
+    oop = asyncio.create_task(lala())
+    print("你试试是是是是")
+    oop2 = asyncio.create_task(lala())
+    print("你试试是是是是")
+    print("你试试是是是是")
+    print("你试试是是是是")
+    print("你试试是是是是")
+    print("你试试是是是是")
+    return oop,oop2
+
 
 async def main():
-    x = asyncio.Queue(maxsize=10)
-    await asyncio.gather(producer(x),consumer(x))
+    a,b = xx()
+    await a
+    await b
 
 asyncio.run(main())

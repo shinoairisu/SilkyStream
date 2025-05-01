@@ -9,7 +9,7 @@ loguru
 lxml
 nanoid
 stqdm
-streamlit
+streamlit==1.41.1
 streamlit-javascript
 taskgroup
 tenacity

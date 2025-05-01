@@ -29,3 +29,4 @@ streamlit run main.py
 **注意：**基于Python 3.10。3.10以上，可以删除依赖中的taskgroup。
 
 ## 细节介绍
+### 异步`call_back`和`async_next_tick`

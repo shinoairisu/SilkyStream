@@ -1,6 +1,14 @@
 import streamlit as st
 
-st.write(st.query_params.get_all("aa"))
+def aa(k,a,b,d,c):
+    print(a,b,c)
+    print(k,d)
 
-if st.button("点我"):
-    st.query_params["aa"] = 2
+
+f = {
+    "a":15,
+    "b":16,
+    "c":17
+}
+
+aa(k=19,d=20,**f)

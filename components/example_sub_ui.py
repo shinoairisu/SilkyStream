@@ -1,4 +1,5 @@
 """一个子页面样例"""
+
 import asyncio
 
 import streamlit as st
@@ -31,14 +32,39 @@ class ViewModel(BaseViewModel):
 
 
 class SubUI1(BaseUI):
-    def __init__(self, namespace, mq_namespace,slot=None,name="火烈鸟",key=None):
-        super().__init__(namespace, mq_namespace,slot=slot,key=key)
-        self.data = ViewModel(namespace, mq_namespace,name=name)
+    def __init__(
+        self,
+        namespace,
+        mq_namespace,
+        name="火烈鸟",
+        slot=None,
+        html_id=None,
+        html_class=None,
+        container="container",
+        height=None,
+        border=None,
+        key=None,
+    ):
+        super().__init__(
+            namespace,
+            mq_namespace,
+            slot,
+            html_id,
+            html_class,
+            container,
+            height,
+            border,
+            key,
+        )
+        self.data = ViewModel(namespace, mq_namespace, name=name)
 
     async def render(self):
-        await self.data.listen() # 监听关注的信道
+        await self.data.listen()  # 监听关注的信道
         with self._slot_context(self.slot):
             st.markdown(f"## 看我看我！\n\n我是{self.data.name}")
-            st.button("发送一个消息",key=self._get_key("button1"),on_click=anext_tick,args=(self.data.action_output,None))
-            
-
+            st.button(
+                "发送一个消息",
+                key=self._get_key("button1"),
+                on_click=anext_tick,
+                args=(self.data.action_output, None),
+            )

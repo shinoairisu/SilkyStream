@@ -125,3 +125,4 @@ class IndexUI(BaseUI):
                 html_class="test1",
             )
             await router().render()
+

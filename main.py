@@ -6,6 +6,7 @@ import streamlit as st
 
 from config.router import router
 from silky_stream.utils.style_manager import load_animate_css
+
 st.router = router  # 提前所有组件注册router
 load_animate_css() # 提前load本地的动画css
 

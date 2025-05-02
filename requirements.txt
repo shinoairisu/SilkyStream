@@ -4,6 +4,7 @@ aiotinydb
 beautifulsoup4
 dotenv
 httpx
+json-repair
 kombu
 langchain-openai
 langchain-text-splitters
@@ -12,7 +13,7 @@ lxml
 nanoid
 pyparsing
 stqdm
-streamlit-javascript
+streamlit-js
 streamlit==1.41.1
 taskgroup
 tenacity

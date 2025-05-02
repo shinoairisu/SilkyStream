@@ -122,7 +122,7 @@ class IndexUI(BaseUI):
         animation-duration: 0.8s;    
     }
 """,
-                html_class="test1",
+                html_class="test1", # 这个是router配置时设定的，参考 config/router.py
             )
             await router().render()
 

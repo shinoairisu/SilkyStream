@@ -3,9 +3,9 @@ import asyncio
 
 import streamlit as st
 
-from baseclasses.base_ui import BaseUI
-from utils.eventloop_executor import anext_tick
-from baseclasses.base_view_model import BaseViewModel
+from silky_stream.baseclasses.base_ui import BaseUI
+from silky_stream.utils.eventloop_executor import anext_tick
+from silky_stream.baseclasses.base_view_model import BaseViewModel
 
 
 class ViewModel(BaseViewModel):

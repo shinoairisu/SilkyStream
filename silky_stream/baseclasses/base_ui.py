@@ -1,5 +1,5 @@
-from typing import List, TypeAlias, Literal
 from contextlib import contextmanager
+from typing import List, TypeAlias, Literal
 
 import streamlit as st
 
@@ -14,10 +14,12 @@ class BaseUI(object):
         slot=None,
         html_id: str = None,
         html_class: List[str] = None,
-        container: Container = "container", 
-        height:int | None = None, # container的高度
-        border:bool | None = None, # container是否有border
-        key:str | None = None # 给container提供一个由streamlit给于的稳定标识class:st-key-你给的这个key的名字
+        container: Container = "container",
+        height: int | None = None,  # container的高度
+        border: bool | None = None,  # container是否有border
+        key: (
+            str | None
+        ) = None,  # 给container提供一个由streamlit给于的稳定标识class:st-key-你给的这个key的名字
     ):
         """
         UI不得操作数据
@@ -37,9 +39,17 @@ class BaseUI(object):
         self.html_class = " ".join(self.html_class) if html_class else None
 
         if slot is None:
-            self.container = st.container(height=height,border=border,key=key) if container == "container" else st.empty()
+            self.container = (
+                st.container(height=height, border=border, key=key)
+                if container == "container"
+                else st.empty()
+            )
         else:
-            self.container = slot.container(height=height,border=border,key=key) if container == "container" else slot.empty()
+            self.container = (
+                slot.container(height=height, border=border, key=key)
+                if container == "container"
+                else slot.empty()
+            )
 
     def _class_and_id(self):
         if self.html_id is not None:

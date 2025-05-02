@@ -4,7 +4,7 @@ import asyncio
 
 import streamlit as st
 from dotenv import load_dotenv
-from utils import namespace_manager as nm
+from silky_stream.utils import namespace_manager as nm
 from components.index_ui import IndexUI
 
 load_dotenv("./config/.env", verbose=True)  # 载入配置文件

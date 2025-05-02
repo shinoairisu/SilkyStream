@@ -5,7 +5,7 @@ rerun可以解决一部分问题，但是为了扩展使用方法
 提供了next_tick函数，可以随时放一个函数等待下一次UI循环前执行
 """
 from typing import Callable,Tuple,Any
-from utils import namespace_manager as nm
+from silky_stream.utils import namespace_manager as nm
 
 def anext_tick(function:Callable[[Any],None],parameters:Tuple[Any]):
     """

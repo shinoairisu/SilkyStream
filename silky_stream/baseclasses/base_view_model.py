@@ -3,7 +3,7 @@ import asyncio
 from typing import Any, Callable
 
 from loguru import logger
-from utils import namespace_manager as nm
+from silky_stream.utils import namespace_manager as nm
 
 
 class BaseViewModel(object):

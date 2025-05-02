@@ -3,7 +3,7 @@
 一个500行实现的MVVM异步前端框架，基于steamlit封装。
 
 - SilkyStream 迭代到3.0版本是一个大更新，为一套异步低保真框架，开箱即用。
-- 面向**SPA(Single Page Application)**设计，使用更丝滑。
+- 面向 **SPA(Single Page Application)** 设计，使用更丝滑。
 - **组件、信道、路由**是SilkyStream 3.0的灵魂。
 
 ## 定位
@@ -37,7 +37,7 @@ conda activate silkystream
 pip install -r requirements.txt
 streamlit run main.py
 ```
-**注意：**基于Python 3.10。3.10以上，可以删除依赖中的taskgroup。
+**注意：** 基于Python 3.10。3.10以上，可以删除依赖中的taskgroup。
 
 ## 细节介绍
 

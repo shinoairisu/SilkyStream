@@ -53,8 +53,6 @@ streamlit run main.py
 
 ### 异步事件回调引擎 `eventloop_executor.py`
 
-
-
 这个文件是将streamlit的回调从同步改为异步的工具。
 
 里面的`async_next_tick`主要用于“在下次循环时执行”，通常用于一个按钮点击后，callback为一个异步函数。

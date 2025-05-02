@@ -23,8 +23,8 @@ class BaseViewModel(object):
         nm_space:set = nm.get_namespace_key("app","data","namespace")
         mq_space:set = nm.get_namespace_key("app","data","mq_namespace")
         
-        check = bool(int(os.environ.get("DEBUG",1)))
-        if check:
+        self.check = bool(int(os.environ.get("DEBUG",1)))
+        if self.check:
             if namespace in nm_space:
                 logger.error("私有namespace自检失败！重复的namespace：{}",namespace)
                 raise ValueError(f"私有namespace自检失败！重复的namespace：{namespace}")
@@ -78,7 +78,8 @@ class BaseViewModel(object):
         if namespace is None:
             namespace = self.mq_namespace
         await nm.pub(namespace, channel, message, switch=switch)
-        logger.debug("向{}的信道{}发送新消息：{}", namespace, channel, message)
+        if self.check:
+            logger.debug("向{}的信道{}发送新消息：{}", namespace, channel, message)
 
     async def _on(
         self,
@@ -101,9 +102,11 @@ class BaseViewModel(object):
                 nm.sub(namespace=namespace, channel=channel, switch=switch),
                 timeout=timeout,
             )
-            logger.debug("从{}的信道{}收到新消息：{}", namespace, channel, message)
+            if self.check:
+                logger.debug("从{}的信道{}收到新消息：{}", namespace, channel, message)
         except:
-            logger.debug("{}的信道{}中，暂时消息为空")
+            if self.check:
+                logger.debug("{}的信道{}中，暂时消息为空")
             return
         if message is not None:
             await acallback(message)

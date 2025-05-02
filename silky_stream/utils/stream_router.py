@@ -6,7 +6,7 @@ SubRouter就是用于将一个组件注册进路由的
 这个组件必须支持标准BaseUI组件的所有参数
 """
 
-from typing import List, Dict
+from typing import List, Dict, Any
 
 import streamlit as st
 from loguru import logger
@@ -21,14 +21,26 @@ def trans_to_bool(s: str) -> bool:
     return False
 
 
+async def exchange_router(
+    router: str, param_dict: Dict[str, str | int | float] = {}, root: str = "router"
+):
+    """
+    用于切换router
+    param_dict 一般只需要写 other_param 的参数,不需要写 BaseUI 自带的参数
+    因为这些参数在定义 RouterInfo 时已经写了
+    """
+    st.query_params[root] = router
+    for r in param_dict:
+        st.query_params[r] = param_dict[r]
+    logger.debug("已切换路由至:{}", router)
+
+
 class RouterInfo(object):
     def __init__(
         self,
         ui_class,
         namespace: str,
         mq_namespace: str,
-        html_id: str = None,
-        html_class: str = None,
         container: str = "container",
         height: int = None,
         border: bool = None,
@@ -38,12 +50,12 @@ class RouterInfo(object):
         ui_class 是BaseUI派生类的类名，比如
         ui_class = SPAPageUI
         不是UI类的实例，是类本身。
+        key 是想给这个组件用的类名，会实例化到组件continer的 st-key-类名 上
+        key 只有在container模式下有效，empty模式下无效
         """
         self._ui_class = ui_class
         self._namespace = namespace
         self._mq_namespace = mq_namespace
-        self._html_id = html_id
-        self._html_class = html_class
         self._container = container
         self._height = height
         self._border = border
@@ -56,18 +68,22 @@ class RouterInfo(object):
         param_name: str,
         param_type: type,
         default_value: int | float | str | None,
+        islist: bool = False
     ):
         """
         param_type 默认只支持int,float,str,bool,可以自定义转换器
         default_value 为None时，如果也没有uri输入，就会自动忽略此参数,不传入UI中
+        islist 本参数指定是否是列表，比如部分控件传入的是个列表
         """
         self._other_params.append(
             {
                 "param_name": param_name,
                 "param_type": param_type,
+                "islist": islist,
                 "default_value": default_value,
             }
         )
+        return self
 
     def _collect_params(self):
         self._namespace = (
@@ -79,16 +95,6 @@ class RouterInfo(object):
             self._mq_namespace
             if not st.query_params.get("mq_namespace", "")
             else st.query_params["mq_namespace"]
-        )
-        self._html_id = (
-            self._html_id
-            if not st.query_params.get("html_id", "")
-            else st.query_params["html_id"]
-        )
-        self._html_class = (
-            self._html_class
-            if not st.query_params.get_all("html_class")
-            else st.query_params.get_all("html_class")
         )
         self._container = (
             self._container
@@ -114,15 +120,19 @@ class RouterInfo(object):
             if (param["default_value"] is None) and (
                 st.query_params.get(param["param_name"], None) is None
             ):
-                # 这种属于不必须得参数
+                # 这种属于不必须的参数
                 continue
-            if par := st.query_params.get(param["param_name"], None):
-                if param["param_type"] == bool:
-                    self._other_param_dict[param["param_name"]] = trans_to_bool(par)
+            if st.query_params.get(param["param_name"], None):
+                if param["islist"]:
+                    if param["param_type"] == bool:
+                        self._other_param_dict[param["param_name"]] = list(map(trans_to_bool,st.query_params.get_all(param["param_name"])))
+                    else:
+                        self._other_param_dict[param["param_name"]] = list(map(param["param_type"],st.query_params.get_all(param["param_name"])))
                 else:
-                    self._other_param_dict[param["param_name"]] = param["param_type"](
-                        par
-                    )
+                    if param["param_type"] == bool:
+                        self._other_param_dict[param["param_name"]] = trans_to_bool(st.query_params[param["param_name"]])
+                    else:
+                        self._other_param_dict[param["param_name"]] = param["param_type"](st.query_params[param["param_name"]])
 
     def _init_com(self, slot=None) -> BaseUI:
         """初始化控件,返回一个BaseUI子类"""
@@ -130,8 +140,6 @@ class RouterInfo(object):
         ui = self._ui_class(
             namespace=self._namespace,
             mq_namespace=self._mq_namespace,
-            html_id=self._html_id,
-            html_class=self._html_class,
             container=self._container,
             height=self._height,
             border=self._border,
@@ -160,13 +168,14 @@ class Router(object):
         self.root = root
         self.router: Dict[str, RouterInfo] = {}
 
-    async def add(self, route_path, router_info: RouterInfo):
+    def add_router(self, route_path, router_info: RouterInfo):
         """
         注册一个路由对象，会自动将这个对象render用的参数变为uri参数
         """
         self.router[route_path] = router_info
+        return self
 
-    async def __call__(self, slot=None) -> BaseUI:
+    def __call__(self, slot=None) -> BaseUI:
         """根据路由返回一个组装好的BaseUI对象"""
         root = st.query_params.get(self.root, "")
         route = root if root else "index"

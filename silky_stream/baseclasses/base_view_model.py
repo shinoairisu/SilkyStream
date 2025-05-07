@@ -113,6 +113,14 @@ class BaseViewModel(object):
 
     async def listen(self):
         """
-        本函数用于整理监听所有信道，一般在UI函数的第一句，在with之前使用
+        本函数用于整理监听所有信道
+        举例：
+        async def listen(self):
+            await self._on(
+                namespace="sub1_mq", acallback=self.action_exchange
+            )  # 监听信道sub1_mq
+            await self._on(
+                namespace="sub2_mq", acallback=self.action_exchange
+            )  # 监听信道sub2_mq
         """
         pass

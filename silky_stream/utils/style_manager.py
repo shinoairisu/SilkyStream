@@ -2,12 +2,17 @@
 
 import streamlit as st
 from loguru import logger
+import aiofiles
 
 
-def load_animate_css():
+async def load_animate_css():
+    """
+    给当前网页载入 animate_css
+    """
     if not getattr(st, "animate_css", None):
-        with open("static/css/animate.min.css", "r", encoding="utf-8") as f:
-            st.animate_css = f.read()
+        async with aiofiles.open("static/css/animate.min.css", "r", encoding="utf-8") as f:
+            st.animate_css = await f.read()
+    st.html(f"<style>{st.animate_css}</style>") # 载入动画css 可选的
 
 
 def set_html_style(style: str, html_class: str = None):

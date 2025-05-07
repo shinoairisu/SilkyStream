@@ -1,7 +1,9 @@
 from contextlib import contextmanager
-from typing import List, TypeAlias, Literal
+from typing import TypeAlias, Literal
 
 import streamlit as st
+from silky_stream.baseclasses.base_view_model import BaseViewModel
+from silky_stream.utils.namespace_manager import get_namespace_key
 
 Container: TypeAlias = Literal["container", "empty"]
 
@@ -30,11 +32,12 @@ class BaseUI(object):
         每个组件都应该用容器包裹自身！
         使用一个container可以把自己锚定在UI定义时的位置，不会被挤到页面下面去。而且可以定义id和class。
         """
-        self.namespace = namespace
-        self.mq_namespace = mq_namespace
-        self.slot = slot
-
-        if slot is None:
+        self._namespace = namespace
+        self._mq_namespace = mq_namespace
+        self._slot = slot
+        self._router = get_namespace_key("app", "data", "router")
+        self._data: BaseViewModel | None = None
+        if slot is None:  # 没有插槽的话，就使用st直属container
             self.container = (
                 st.container(height=height, border=border, key=key)
                 if container == "container"
@@ -51,7 +54,7 @@ class BaseUI(object):
         """
         使用数据key获得真实的session_state中的key
         """
-        return f"{self.namespace}::data::{key}"
+        return f"{self._namespace}::data::{key}"
 
     @contextmanager
     def _slot_context(self, slot):
@@ -61,14 +64,24 @@ class BaseUI(object):
         """
         if slot is None:
             with self.container:
-                # self._class_and_id()
                 yield
         else:
             with slot:
                 with self.container:
-                    # self._class_and_id()
                     yield
 
-    async def render(self):
-        """渲染UI内容基于本函数"""
+    async def _update(self):
+        """
+        ui渲染逻辑
+        继承本类后，重写本函数
+        """
         pass
+
+    async def render(self):
+        """
+        渲染ui调用本函数，但是本函数不承担ui逻辑
+        """
+        if self._data is not None:
+            await self._data.listen() # 监听所有信号
+        with self._slot_context(self._slot):
+            await self._update() # 绘制UI逻辑

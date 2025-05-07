@@ -54,13 +54,11 @@ class SubUI1(BaseUI):
         )
         self.data = ViewModel(namespace, mq_namespace, name=name)
 
-    async def render(self):
-        await self.data.listen()  # 监听关注的信道
-        with self._slot_context(self.slot):
-            st.markdown(f"## 看我看我！\n\n我是{self.data.name}")
-            st.button(
-                "发送一个消息",
-                key=self._get_key("button1"),
-                on_click=anext_tick,
-                args=(self.data.action_output, None),
-            )
+    async def _update(self):
+        st.markdown(f"## 看我看我！\n\n我是{self.data.name}")
+        st.button(
+            "发送一个消息",
+            key=self._get_key("button1"),
+            on_click=anext_tick,
+            args=(self.data.action_output, None),
+        )

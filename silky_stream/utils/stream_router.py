@@ -21,12 +21,13 @@ def trans_to_bool(s: str) -> bool:
     return False
 
 
-async def exchange_router(
+def exchange_router(
     router: str, param_dict: Dict[str, str | int | float] = {}, root: str = "router"
 ):
     """
     用于切换router
-    param_dict 一般只需要写 other_param 的参数,不需要写 BaseUI 自带的参数
+    param_dict 一般只需要写 other_param 的参数
+    不需要写 BaseUI 自带的参数
     因为这些参数在定义 RouterInfo 时已经写了
     """
     st.query_params[root] = router
@@ -68,12 +69,13 @@ class RouterInfo(object):
         param_name: str,
         param_type: type,
         default_value: int | float | str | None,
-        islist: bool = False
+        islist: bool = False,
     ):
         """
         param_type 默认只支持int,float,str,bool,可以自定义转换器
         default_value 为None时，如果也没有uri输入，就会自动忽略此参数,不传入UI中
         islist 本参数指定是否是列表，比如部分控件传入的是个列表
+        使用 exchange router 指定参数时只需要写 参数名:参数值 即可，内部会自动转换为对应类型
         """
         self._other_params.append(
             {
@@ -125,14 +127,28 @@ class RouterInfo(object):
             if st.query_params.get(param["param_name"], None):
                 if param["islist"]:
                     if param["param_type"] == bool:
-                        self._other_param_dict[param["param_name"]] = list(map(trans_to_bool,st.query_params.get_all(param["param_name"])))
+                        self._other_param_dict[param["param_name"]] = list(
+                            map(
+                                trans_to_bool,
+                                st.query_params.get_all(param["param_name"]),
+                            )
+                        )
                     else:
-                        self._other_param_dict[param["param_name"]] = list(map(param["param_type"],st.query_params.get_all(param["param_name"])))
+                        self._other_param_dict[param["param_name"]] = list(
+                            map(
+                                param["param_type"],
+                                st.query_params.get_all(param["param_name"]),
+                            )
+                        )
                 else:
                     if param["param_type"] == bool:
-                        self._other_param_dict[param["param_name"]] = trans_to_bool(st.query_params[param["param_name"]])
+                        self._other_param_dict[param["param_name"]] = trans_to_bool(
+                            st.query_params[param["param_name"]]
+                        )
                     else:
-                        self._other_param_dict[param["param_name"]] = param["param_type"](st.query_params[param["param_name"]])
+                        self._other_param_dict[param["param_name"]] = param[
+                            "param_type"
+                        ](st.query_params[param["param_name"]])
 
     def _init_com(self, slot=None) -> BaseUI:
         """初始化控件,返回一个BaseUI子类"""
@@ -175,10 +191,17 @@ class Router(object):
         self.router[route_path] = router_info
         return self
 
-    def __call__(self, slot=None) -> BaseUI:
-        """根据路由返回一个组装好的BaseUI对象"""
+    def __call__(self, slot=None, not_found="index") -> BaseUI:
+        """
+        根据路由返回一个组装好的BaseUI对象
+        slot 是这个路由页面的插槽
+        not_found 是404时去的页面（要求参数必须可空，因为传入的参数不可控）
+        """
         root = st.query_params.get(self.root, "")
         route = root if root else "index"
         if route not in self.router:
-            raise ValueError(f"路由错误！没有 {route} 路由！")
+            # 当访问了一个错误的路由时，会导向not_found，通常是主页
+            logger.error("路由错误！")
+            exchange_router(not_found)
+            route = not_found
         return self.router[route]._init_com(slot=slot)

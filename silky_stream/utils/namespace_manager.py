@@ -16,6 +16,7 @@ def get_namespace_key(namespace, domain, channel):
     namespace 是控件的主命名空间，还会有radio_namespace是广播命名空间
     domain 是域名，比如: mq data 等，代表数据域
     channel 是信道，在data时就是一片数据存储仓库，在mq里是个消息队列
+    如果这个值不存在，返回None
     """
     space = f"{namespace}::{domain}::{channel}"
     return st.session_state.get(space, None)
@@ -68,6 +69,19 @@ def init_data(namespace, key, value) -> Any:
     """
     init_namespace_key(namespace, "data", key, value)
     return value
+
+
+def init_app(router=None) -> None:
+    """
+    初始化一个SilkyStream应用
+    """
+    init_data("app", "namespace", {})  # 初始化同步回调队列
+    init_data("app", "async_rerun_task", [])  # 初始化异步回调队列
+    init_data("app", "sync_rerun_task", [])  # 初始化同步回调队列
+    set_namespace_key("app", "data", "namespace", set())  # 自扫描命名空间
+    set_namespace_key("app", "data", "mq_namespace", set())
+    if router is not None:
+        init_data("app", "router", router)
 
 
 async def sub(namespace, channel, switch=True):

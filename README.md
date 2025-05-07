@@ -4,7 +4,7 @@
 
 - SilkyStream 迭代到3版本是一个大更新，为一套异步低保真框架，开箱即用。
 - 面向 **SPA(Single Page Application)** 设计，使用更丝滑。
-- **组件、信道、路由**是SilkyStream 3.2的灵魂。
+- **组件、信道、路由**是SilkyStream 3的主要设计方向。
 
 ## 定位
 SilkyStream 3是个规范模板，不是框架，不再像1.0那样是一个whl包安装上，导入数据类然后用。

@@ -22,18 +22,26 @@ def trans_to_bool(s: str) -> bool:
 
 
 def exchange_router(
-    router: str, param_dict: Dict[str, str | int | float] = {}, root: str = "router"
+    router: str,
+    param_dict: Dict[str, str | int | float] = {},
+    callback=True,
+    root: str = "router",
 ):
     """
-    用于切换router
+    用于切换router，推荐使用callback调用
     param_dict 一般只需要写 other_param 的参数
     不需要写 BaseUI 自带的参数
     因为这些参数在定义 RouterInfo 时已经写了
+    callback 是指是否是在callback时调用。这个
     """
     st.query_params[root] = router
     for r in param_dict:
         st.query_params[r] = param_dict[r]
     logger.debug("已切换路由至:{}", router)
+    # 如果不是callback模式，就必须要强制rerun了
+    if not callback:
+        st.rerun()
+
 
 
 class RouterInfo(object):
@@ -202,6 +210,5 @@ class Router(object):
         if route not in self.router:
             # 当访问了一个错误的路由时，会导向not_found，通常是主页
             logger.error("路由错误！")
-            exchange_router(not_found)
-            route = not_found
+            exchange_router(not_found,callback=False)
         return self.router[route]._init_com(slot=slot)

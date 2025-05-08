@@ -14,7 +14,7 @@ from silky_stream.utils.eventloop_executor import process_callback
 
 load_dotenv("./config/.env", verbose=True)  # 载入配置文件，必选
 st.set_page_config(
-    page_title="SilkyStream V3.0模板工程",
+    page_title="SilkyStream V3.4模板工程",
     layout="wide",
     initial_sidebar_state="collapsed",
 )

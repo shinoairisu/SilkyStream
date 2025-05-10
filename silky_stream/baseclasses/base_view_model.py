@@ -2,8 +2,12 @@ import os
 import asyncio
 from typing import Any, Callable
 
+import streamlit as st
 from loguru import logger
+
 from silky_stream.utils import namespace_manager as nm
+from silky_stream.utils.eventloop_executor import next_tick
+
 
 
 class BaseViewModel(object):
@@ -20,28 +24,8 @@ class BaseViewModel(object):
         """
         self.namespace = namespace
         self.mq_namespace = mq_namespace
-        nm_space:set = nm.get_namespace_key("app","data","namespace")
-        mq_space:set = nm.get_namespace_key("app","data","mq_namespace")
-        
-        self.check = bool(int(os.environ.get("DEBUG",1)))
-        if self.check:
-            if namespace in nm_space:
-                logger.error("私有namespace自检失败！重复的namespace：{}",namespace)
-                raise ValueError(f"私有namespace自检失败！重复的namespace：{namespace}")
-            elif namespace in mq_space:
-                logger.error("私有namespace自检失败！使用的namespace为信道namespace：{}",namespace)
-                raise ValueError(f"私有namespace自检失败！使用的namespace为信道namespace：{namespace}")
-            elif mq_space in nm_space:
-                logger.error("mq_namespace自检失败！信道namespace：{}存在于私有namespace中！",mq_namespace)
-                raise ValueError(f"mq_namespace自检失败！信道namespace：{mq_namespace}存在于私有namespace中！")
-            elif mq_namespace == namespace:
-                logger.error("mq_namespace自检失败！私有namespace和信道namespace名称一样：{}！",namespace)
-                raise ValueError(f"mq_namespace自检失败！私有namespace和信道namespace名称一样：{namespace}！")
-            else:
-                nm_space.add(namespace)
-                mq_space.add(mq_namespace)
-
-
+        # 开启debug模式的话，会打印特殊debug消息。
+        self.check = bool(int(os.environ.get("DEBUG", 0)))
 
     def _init_data(self, key: str, value: Any):
         """
@@ -62,7 +46,11 @@ class BaseViewModel(object):
         """
         设置数据
         """
-        nm.set_namespace_key(self.namespace, "data", key, value)
+        try:
+            nm.set_namespace_key(self.namespace, "data", key, value)
+        except st.errors.StreamlitAPIException as e:
+            next_tick(nm.set_namespace_key,(self.namespace, "data", key, value))
+            st.rerun()
 
     def _get_data(self, key: str):
         """

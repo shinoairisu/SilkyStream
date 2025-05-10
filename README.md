@@ -46,7 +46,7 @@ streamlit run main.py
 
 ### `main.py`
 
-这是个项目模板，里面使用了SS3.0大部分的功能，并且引入了`components`文件夹下的`index_ui`
+这是个项目模板，里面使用了 `SilkyStream 3.5` 大部分的功能，并且引入了`components`文件夹下的`index_ui`。
 
 `index_ui` 一般是一个SPA的主页。只需修改这个文件即可。
 
@@ -93,3 +93,12 @@ streamlit run main.py
 
 所有视图-数据模型的基类。可以参考`index_ui.py` 或者 `example_sub_ui.py`
 
+
+## 注意
+
+由于是异步框架，所以需要注意几点：
+1. 每个需要异步的组件即使没有异步内容，都需要写足够多的 `await asyncio.sleep(1e-7)` 或者 `to_thread` 等异步方法，以及时释放 CPU 给别的对象。
+2. `ctrl + c` 可能无法关闭服务器，此时需要刷新下浏览器，就关闭了。
+3. 不可以对使用key的组件使用 while + empty 循环，这会导致重复创建大量对象，内存泄漏和报错。
+4. ViewModel 的 `_set_data` 函数不仅仅可以在 on_click 中使用，也可以在组件渲染之后，对 key 进行设置，比如 `if button: self._data.xxx = 15` , 因为它的实现用了 `next_tick` 和 `st.rerun`。
+5. 导入多余html，比如 css ，在快速点击按钮时会导致网页闪烁，因为加载太多东西。除非必要，否则不要用。

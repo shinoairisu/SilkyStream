@@ -52,13 +52,13 @@ class SubUI1(BaseUI):
             border,
             key,
         )
-        self.data = ViewModel(namespace, mq_namespace, name=name)
+        self._data = ViewModel(namespace, mq_namespace, name=name)
 
     async def _update(self):
-        st.markdown(f"## 看我看我！\n\n我是{self.data.name}")
+        st.markdown(f"## 看我看我！\n\n我是{self._data.name}")
         st.button(
             "发送一个消息",
             key=self._get_key("button1"),
             on_click=anext_tick,
-            args=(self.data.action_output, None),
+            args=(self._data.action_output, None),
         )

@@ -75,11 +75,8 @@ def init_app(router=None) -> None:
     """
     初始化一个SilkyStream应用
     """
-    init_data("app", "namespace", {})  # 初始化同步回调队列
     init_data("app", "async_rerun_task", [])  # 初始化异步回调队列
     init_data("app", "sync_rerun_task", [])  # 初始化同步回调队列
-    set_namespace_key("app", "data", "namespace", set())  # 自扫描命名空间
-    set_namespace_key("app", "data", "mq_namespace", set())
     if router is not None:
         init_data("app", "router", router)
 

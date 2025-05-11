@@ -36,7 +36,6 @@ class BaseUI(object):
         self._mq_namespace = mq_namespace
         self._slot = slot
         self._router = get_namespace_key("app", "data", "router")
-        self._data: BaseViewModel | None = None
         if slot is None:  # 没有插槽的话，就使用st直属container
             self.container = (
                 st.container(height=height, border=border, key=key)
@@ -81,7 +80,7 @@ class BaseUI(object):
         """
         渲染ui调用本函数，但是本函数不承担ui逻辑
         """
-        if self._data is not None:
+        if getattr(self, "_data", None) is not None:
             await self._data.listen() # 监听所有信号
         with self._slot_context(self._slot):
             await self._update() # 绘制UI逻辑

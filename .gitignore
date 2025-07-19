@@ -1,7 +1,6 @@
 # folder
 __pycache__/
-
+.idea/
 
 # file
-.env
-runner.bat
+server.log

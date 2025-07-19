@@ -1,104 +1,66 @@
-# SilkyStream 3
+# SilkyStream 4
 
-一个500行实现的MVVM异步前端框架，基于steamlit封装。
+SilkyStream 4 是在 SilkyStream 3 经历了大项目洗礼后，迭代的结果。
 
-- SilkyStream 迭代到3版本是一个大更新，为一套异步低保真框架，开箱即用。
-- 面向 **SPA(Single Page Application)** 设计，使用更丝滑。
-- **组件、信道、路由**是SilkyStream 3的主要设计方向。
+架构与版本3有巨大差别，包括设计哲学。
 
-## 定位
-SilkyStream 3是个规范模板，不是框架，不再像1.0那样是一个whl包安装上，导入数据类然后用。
+SilkyStream 4 是一个由FastAPI主导的前端项目，但是面向的是桌面端、端侧无状态用户。
 
-这个版本是规范应用写法包括**代码**还有**文档**，要求所有组件构造一致，以实现：**易阅读、易扩展、易设计、易协作**。
+本项目设计初衷仅仅就是面向家庭级（5~10人场景）的用户，其中有人必须至少拥有执行命令行命令的能力。
 
-项目包含一套高性能异步模板代码。
+建议只用本项目设计低保真，然后测试无问题了，可以使用项目中的后端部分设计高保真。
 
-## 理念
-- 让streamlit使用更加丝滑顺畅，尽量抵消`rerun python code`带来的不适；
-- 使用流行的数据驱动模式：MVVM，代码编写更丝滑；
-- 将所有任务分解为**组件、信道、路由**，通过异步特性进行实时显示、传参；
-- 父子组件数据隔离，使多人协作开发更易上手；
-- 完全解耦的UI渲染与数据管理，代码不再晦涩难懂；
+## 版本
 
-## 效果
+本项目要求Python版本为 `Python>=3.11`。
 
-全异步的路由UI可以做到：
+## 设计理念
+第 4 代设计理念是在第三代的异步上加入组件化。只是提供了几个重要部件的雏形:
+1. 路由：提供了一个极其简易的路由系统，可以快速地进行页面切换，无需依赖streamlit本身的page系统
+2. key：所有部件使用的统一key结构为 —— 使用自身的key + 子部件的key 
+3. Pydantic Class：所有组件基于Pydantic Class进行部署，方便访问
+4. view参数提供页面导航，点击按钮、或者在对象新建时进行链接切换可以触发页面变化
 
-- 实时多任务显示进度
-- 全项目不用换页，在一页上即可完成，不存在数据管理成本
-- 异步UI，显示顺序不再是顺序执行，可以进行交错执行
-- 可拆分的工程，可分为多组件开发
+注意：
+- 所有用到 `create_task` 的地方都需要使用一个容器来固定自身
+- `路由更改` 只能通过组件交互来完成，比如按一个按钮等。无法直接在代码中通过修改路由页面进行更改。
+- `路由页面key` 页面的key就是他们的路由标签自身，比如 view=helloWorld，那么他的key就是helloWorld，这是全局唯一的。
+- 异步前端中，`st.rerun` 是失效的。因为会被作为taskgroup的错误捕获。
 
-## 使用方法
-### conda
-```bash
-conda create -n silkystream python=3.10
-conda activate silkystream
-pip install -r requirements.txt
-streamlit run main.py
+## 项目执行
+
+本项目是跨平台项目，支持 Windows、Linux、MAC等多种平台。
+
+推荐顺序为：Centos == Ubuntu > MAC > Windows。
+
+项目默认启动、执行脚本使用Windows的CMD。根据需要自行修改。
+
+### 安装
+
+安装文件是 `install.bat` 。需要根据本机情况改动。强力推荐使用conda/uv等版本管理器进行执行，防止污染环境。 在Windows下可以直接双击执行。
+
+linux版本可以直接挪用，可交由Deepseek改写。不再赘述。
+
+conda初始化命令为:
+
+``` bat
+conda create -n 项目名 python=3.11
 ```
-**注意：** 基于Python 3.10。3.10以上，可以删除依赖中的taskgroup。
 
-## 细节介绍
+执行本项目:
 
-### 配置文件
-配置文件在config文件夹下的.env中，其中`debug=1`时开启DEBUG模式，会打印更多的东西，带有启动时命名空间重复自检机制。
+``` bat
+install.bat
+```
 
-### `main.py`
+### 执行
 
-这是个项目模板，里面使用了 `SilkyStream 3.5` 大部分的功能，并且引入了`components`文件夹下的`index_ui`。
+本脚本依旧需要根据本机情况进行改动，比如裸跑的可以删除conda部分。在Windows下可以直接双击执行。
 
-`index_ui` 一般是一个SPA的主页。只需修改这个文件即可。
+linux版本可以直接挪用，可交由Deepseek改写。不再赘述。
 
+``` bat
+run_frontend.bat
+run_backend.bat
+```
 
-### 异步事件回调引擎 `eventloop_executor.py`
-
-这个文件是将streamlit的回调从同步改为异步的工具。
-
-里面的`async_next_tick`主要用于“在下次循环时执行”，通常用于一个按钮点击后，callback为一个异步函数。
-
-也支持同时放入多个函数，这些函数会全部以异步方式执行。
-
-### 信道与数据空间管理器 `namespace_manager.py`
-
-是所有数据、信道创建的基础。框架的整个信道架构基于本文件提供的能力。
-
-使用框架开发时用的比较少。
-
-
-### 路由引擎 `stream_router.py`
-
-路由是SPA的灵魂，它使页面的主体可以在不换页的情况下被动态替换。
-
-路由引擎在config下有router写了模板，全项目使用这个路由即可。
-
-它主要是依赖url传参的方式，将注册在路由的组件渲染出来。
-
-理论上可以注册多个路由。但是通常只需要一个路由器即可。
-
-具体可以看源码，源码比较简单。
-
-### 样式管理器 `style_manager.py`
-
-默认加载了动画库 `Animate.css`
-
-可以使用组件的key进行方便的样式设置。
-
-
-### `base_ui.py`
-
-所有UI的基类。可以参考`index_ui.py` 或者 `example_sub_ui.py`
-
-### `base_view_model.py`
-
-所有视图-数据模型的基类。可以参考`index_ui.py` 或者 `example_sub_ui.py`
-
-
-## 注意
-
-由于是异步框架，所以需要注意几点：
-1. 每个需要异步的组件即使没有异步内容，都需要写足够多的 `await asyncio.sleep(1e-7)` 或者 `to_thread` 等异步方法，以及时释放 CPU 给别的对象。
-2. `ctrl + c` 可能无法关闭服务器，此时需要刷新下浏览器，就关闭了。
-3. 不可以对使用key的组件使用 while + empty 循环，这会导致重复创建大量对象，内存泄漏和报错。
-4. ViewModel 的 `_set_data` 函数不仅仅可以在 on_click 中使用，也可以在组件渲染之后，对 key 进行设置，比如 `if button: self._data.xxx = 15` , 因为它的实现用了 `next_tick` 和 `st.rerun`。
-5. 导入多余html，比如 css ，在快速点击按钮时会导致网页闪烁，因为加载太多东西。除非必要，否则不要用。

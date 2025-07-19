@@ -3,9 +3,9 @@ aioredis
 aiotinydb
 beautifulsoup4
 dotenv
+fastapi[standard]
 httpx
 json-repair
-kombu
 langchain-openai
 langchain-text-splitters
 loguru
@@ -13,9 +13,6 @@ lxml
 nanoid
 pyparsing
 stqdm
-streamlit-js
-streamlit==1.41.1
-taskgroup
+streamlit
 tenacity
 tqdm
-transitions

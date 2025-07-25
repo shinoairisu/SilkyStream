@@ -18,7 +18,7 @@ logger.add("server.log")
 st.set_page_config(page_title="SilkyStream 4.0", layout="wide", initial_sidebar_state="collapsed", menu_items=None)
 
 # 初始化全局变量
-if "global_init" not in st.session_state:
+if "global_const_init" not in st.session_state:
     st.session_state.global_const_init = True
     st.session_state.global_async_action = []  # 所有的异步方法放在这里执行
     st.session_state.global_const_server_name = os.environ.get("server_name", "未命名服务")
